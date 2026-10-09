@@ -7,7 +7,7 @@
 2、语义切块：规则文档按"第X条"、测评表按栏目标题切分并添加相应文字描述
 3、向量化：BGE-small-zh 中文 Embedding 模型
 4、向量存储：ChromaDB 本地持久化
-5、检索测试：命令行交互式提问，返回 Top-3 相关条款
+5、检索测试：命令行交互式提问，返回 Top-3 相关条款及来源文件
 
 ## 技术栈
 Python 3.11 · PyMuPDF · python-docx · sentence-transformers (BGE) · ChromaDB
@@ -23,23 +23,24 @@ scholarship-RAG/
 │   ├── pdf1md.py     # PDF → Markdown
 │   ├── docx2md.py    # Word → Markdown
 │   ├── chunker.py    # 语义切块
-│   └── embed.py      # 向量化入库 + 检索测试
+│   ├── embed.py      # 向量化入库 + 检索测试
+│   └── rag.py        # 检索 + prompt + 调API + 输出答案
 └── .gitignore
 
 ## 开发路线
-[✅] 文档解析与数据清洗（含人工校对表格）
-[✅] 语义切块与元数据标注
-[✅] 向量化与检索测试
-[ ] 接入 LLM API 生成回答
-[ ] 多轮对话支持
-[ ] LangChain 重构对比
-[ ] 检索质量评测集
+1、文档解析与数据清洗（含人工校对表格）
+2、语义切块与元数据标注
+3、向量化与检索测试
+4、接入 LLM API 生成回答
+5、（未完成） 多轮对话支持
+6、（未完成）LangChain 重构对比
+7、（未完成）检索质量评测集
 
 ## 踩坑记录
 检索失败的常见根因是切块问题（如附录粘附成巨型块导致语义稀释），
 详见开发笔记 [notes.md](src/notes.md)。
 
-## 快速开始
+## 使用方法
 ```bash
 # 1. 安装依赖
 pip install pymupdf python-docx sentence-transformers chromadb
@@ -54,4 +55,5 @@ python src/chunker.py
 # 4. 向量化入库 + 提问测试
 python src/embed.py
 
-
+# 5. 使用
+python src/rag.py
