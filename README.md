@@ -32,7 +32,46 @@ Python 3.11 · PyMuPDF · python-docx · sentence-transformers（BGE-small-zh-v1
 
 ## 项目结构
 
-scholarship-RAG/├── data/│   ├── raw/                  # 原始文档（学院细则 PDF + 测评表 docx，仅学习演示）│   ├── processed/            # 解析生成的 Markdown│   ├── chunks/               # 切块产物；chunks_clean.jsonl = 人工清洗后的语料备份│   ├── eval_set.jsonl        # 30 条检索质量评测集（含条款级标准答案）│   └── chroma/               # 向量数据库（自动生成，已 gitignore）├── src/│   ├── pdfmd.py / docxmd.py  # PDF / Word → Markdown│   ├── chunker.py            # 语义切块│   ├── embed.py              # 向量化入库（完整流水线版，含已知改进点见 notes.md）│   ├── build_from_clean.py   # 从 chunks_clean.jsonl 一键建库（推荐）│   ├── rebuild_chroma.py     # 库备份 / 剔除 / 重建工具│   ├── eval.py               # 检索质量评测（生产路径）│   ├── eval_lab.py           # 独立参考实现（交叉验证用）│   ├── rag.py                # RAG 问答主流程（改写→检索→生成）│   ├── config.py             # API Key（已 gitignore）│   └── notes.md              # 开发笔记与踩坑记录（含 40%→80% 排查全过程）├── eval_report.json          # 最近一次评测报告├── .gitignore└── requirements.txt
+scholarship-RAG/
+├── data/  
+
+    ├── raw/                  # 原始文档（学院细则 PDF + 测评表 docx，仅学习演示）   
+    
+    ├── processed/            # 解析生成的 Markdown 
+    
+    ├── chunks/               # 切块产物；chunks_clean.jsonl = 人工清洗后的语料备份
+    
+    ├── eval_set.jsonl        # 30 条检索质量评测集（含条款级标准答案）
+    
+    └── chroma/               # 向量数据库（自动生成，已 gitignore）
+    
+├── src/
+
+    ├── pdfmd.py / docxmd.py  # PDF / Word → Markdown
+    
+    ├── chunker.py            # 语义切块
+
+    ├── embed.py              # 向量化入库（完整流水线版，含已知改进点见 notes.md）
+    
+    ├── build_from_clean.py   # 从 chunks_clean.jsonl 一键建库（推荐）
+    
+    ├── rebuild_chroma.py     # 库备份 / 剔除 / 重建工具
+    
+    ├── eval.py               # 检索质量评测（生产路径）
+
+    ├── eval_lab.py           # 独立参考实现（交叉验证用）
+    
+    ├── rag.py                # RAG 问答主流程（改写→检索→生成）
+    
+    ├── config.py             # API Key（已 gitignore）
+    
+    └── notes.md              # 开发笔记与踩坑记录（含 40%→80% 排查全过程）
+    
+├── eval_report.json          # 最近一次评测报告
+
+├── .gitignore
+
+└── requirements.txt
 
 ## 开发路线
 
@@ -46,8 +85,8 @@ scholarship-RAG/├── data/│   ├── raw/                  # 原始文
 
 ## 踩坑纪录
 
-完整的问题现象、分层归因与修复过程见 [src/notes.md](src/notes.md)，核心四条：
-块太大语义稀释 · Chroma add 是追加语义需先删后建 · 长查询稀释与改写 · 检索质量三层排查（40%→80%）
+完整的问题现象、分层归因与修复过程见 [src/notes.md](src/notes.md)，
+核心四条：块太大语义稀释 · Chroma add 是追加语义需先删后建 · 长查询稀释与改写 · 检索质量三层排查（40%→80%）
 
 ## 快速开始
 
