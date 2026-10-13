@@ -10,6 +10,13 @@
 > **答**：通过六级可以加0.5分。填写位置：应填在综测表的 “附加项”部分，具体归入“智育”模块。每行填写三项：加分项（写“英语六级证书”）、加分分数（0.5分）、模块总加分；全部填完后合计“附加项总分”。补充说明：英语六级按425分计，大于或等于425分才加分，否则不加分；同一学年至多加一次分；同一证书四年中仅计算一次。
 > **来源**：依据条款：《人工智能与计算机学院本科生综合素质考评实施细则（2025年修订）》“（二）智育附加分加分标准”第1条；《人工智能与计算机学院2025—2026学年本科生综合素质考评表》“附加项”填写说明
 
+## 检索质量（可复现）
+
+1、**评测集**：30 条问答（`data/eval_set.jsonl`），按真实用户提问方式分三类——直接问 / 同义改写 / 跨条款综合，各 10 条；标注条款级标准答案，多来源答案以分号分隔（命中任一即算对）
+2、 **指标**：Top-3 条款级召回率 **80.0%**（30 题对 24，direct / paraphrase / multi 三组均衡 80%）
+3、**交叉验证**：`eval.py`（生产路径）与 `eval_lab.py`（numpy 精确余弦的独立参考实现）结果收敛，互相印证
+4、**优化过程**：40% → 80%，归因与修复全过程见 `src/notes.md` 第 4 条（语料冗余 / 评测协议 / HNSW 检索参数三层归因）
+
 ## 功能特性
 
 1. **多格式文档解析**：PDF（PyMuPDF）与 Word（python-docx）→ 结构化 Markdown
@@ -25,22 +32,7 @@ Python 3.11 · PyMuPDF · python-docx · sentence-transformers（BGE-small-zh-v1
 
 ## 项目结构
 
-scholarship-RAG/
-├── data/
-│   ├── raw/          # 原始文档（PDF × 2 + 测评表 docx）
-│   ├── processed/    # 解析生成的 Markdown
-│   ├── chunks/       # 切块产物（JSONL）
-│   └── chroma/       # 向量数据库（自动生成，已 gitignore）
-├── src/
-│   ├── pdf2md.py     # PDF → Markdown
-│   ├── docx2md.py    # Word → Markdown
-│   ├── chunker.py    # 语义切块
-│   ├── embed.py      # 向量化入库 + 检索测试
-│   ├── rag.py        # 检索 + 查询改写 + 调 LLM API + 生成回答
-│   ├── config.py     # API Key 等配置（已 gitignore，见下）
-│   └── notes.md      # 开发笔记与踩坑记录
-├── .gitignore
-└── requirements.txt
+scholarship-RAG/├── data/│   ├── raw/                  # 原始文档（学院细则 PDF + 测评表 docx，仅学习演示）│   ├── processed/            # 解析生成的 Markdown│   ├── chunks/               # 切块产物；chunks_clean.jsonl = 人工清洗后的语料备份│   ├── eval_set.jsonl        # 30 条检索质量评测集（含条款级标准答案）│   └── chroma/               # 向量数据库（自动生成，已 gitignore）├── src/│   ├── pdfmd.py / docxmd.py  # PDF / Word → Markdown│   ├── chunker.py            # 语义切块│   ├── embed.py              # 向量化入库（完整流水线版，含已知改进点见 notes.md）│   ├── build_from_clean.py   # 从 chunks_clean.jsonl 一键建库（推荐）│   ├── rebuild_chroma.py     # 库备份 / 剔除 / 重建工具│   ├── eval.py               # 检索质量评测（生产路径）│   ├── eval_lab.py           # 独立参考实现（交叉验证用）│   ├── rag.py                # RAG 问答主流程（改写→检索→生成）│   ├── config.py             # API Key（已 gitignore）│   └── notes.md              # 开发笔记与踩坑记录（含 40%→80% 排查全过程）├── eval_report.json          # 最近一次评测报告├── .gitignore└── requirements.txt
 
 ## 开发路线
 
@@ -50,10 +42,12 @@ scholarship-RAG/
 4、 接入 LLM API 生成回答
 5、 LLM 查询改写（修复长查询检索失败）
 6、 来源映射与答案溯源
+7、检索质量评测体系（30 条评测集 + 独立参考实现交叉验证，Top-3 召回率 40% → 80%）
 
 ## 踩坑纪录
 
-详细问题及修复思路见src/notes.md
+完整的问题现象、分层归因与修复过程见 [src/notes.md](src/notes.md)，核心四条：
+块太大语义稀释 · Chroma add 是追加语义需先删后建 · 长查询稀释与改写 · 检索质量三层排查（40%→80%）
 
 ## 快速开始
 
@@ -72,15 +66,11 @@ pip install -r requirements.txt
 # 4. 配置 API Key
 # 在 src/config.py 中填入你的 LLM API Key（该文件已被 .gitignore 排除）
 
-# 5. 解析文档（data/raw/ 已附带示例文档）
-python src/pdfmd.py
-python src/docxmd.py
+# 5. 从干净语料一键建库（跳过解析切块流水线）
+python src/build_from_clean.py
 
-# 6. 语义切块
-python src/chunker.py
+# 6. 复现检索质量评测（预期 Top-3 条款级召回率 80%）
+python src/eval.py --top-k 3
 
-# 7. 向量化入库 + 检索测试
-python src/embed.py
-
-# 8. 启动问答
+# 7. 启动问答
 python src/rag.py
